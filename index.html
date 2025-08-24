@@ -663,11 +663,19 @@
                     // Parse CSV
                     const parsed = Papa.parse(content, {
                         header: true,
-                        dynamicTyping: true,
+                        dynamicTyping: false,  // Keep everything as strings
                         skipEmptyLines: true
                     });
                     
-                    database = parsed.data;
+                    // Clean up and ensure proper data types
+                    database = parsed.data.map(row => ({
+                        barcode: row.barcode || '',
+                        description: row.description || '',
+                        quantity: parseInt(row.quantity) || 0,
+                        lastScanned: row.lastScanned || '',
+                        firstScanned: row.firstScanned || '',
+                        scanCount: parseInt(row.scanCount) || 0
+                    }));
                     unsyncedChanges = 0;
                     
                     updateStats();
@@ -931,9 +939,12 @@
             document.getElementById('uniqueBarcodes').textContent = uniqueBarcodes;
             
             const today = new Date().toISOString().split('T')[0];
-            const todayScans = database.filter(item => 
-                item.lastScanned && item.lastScanned.startsWith(today)
-            ).length;
+            const todayScans = database.filter(item => {
+                // Ensure lastScanned is a string and exists before using startsWith
+                return item.lastScanned && 
+                       typeof item.lastScanned === 'string' && 
+                       item.lastScanned.startsWith(today);
+            }).length;
             document.getElementById('todayScans').textContent = todayScans;
             
             document.getElementById('unsyncedChanges').textContent = unsyncedChanges;
