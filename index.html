@@ -669,13 +669,13 @@
                     
                     // Clean up and ensure proper data types
                     database = parsed.data.map(row => ({
-                        barcode: row.barcode || '',
-                        description: row.description || '',
+                        barcode: String(row.barcode || ''),
+                        description: String(row.description || ''),
                         quantity: parseInt(row.quantity) || 0,
-                        lastScanned: row.lastScanned || '',
-                        firstScanned: row.firstScanned || '',
+                        lastScanned: String(row.lastScanned || ''),
+                        firstScanned: String(row.firstScanned || ''),
                         scanCount: parseInt(row.scanCount) || 0
-                    }));
+                    })).filter(item => item.barcode); // Remove any entries without a barcode
                     unsyncedChanges = 0;
                     
                     updateStats();
@@ -972,7 +972,11 @@
             
             // Sort by last scanned and show recent 10
             const recent = [...database]
-                .sort((a, b) => (b.lastScanned || '').localeCompare(a.lastScanned || ''))
+                .sort((a, b) => {
+                    const aDate = a.lastScanned || '';
+                    const bDate = b.lastScanned || '';
+                    return bDate.localeCompare(aDate);
+                })
                 .slice(0, 10);
             
             let html = `
